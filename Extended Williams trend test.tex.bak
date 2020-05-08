@@ -1,0 +1,156 @@
+\documentclass[14pt]{extarticle}
+\renewcommand{\baselinestretch}{1.5} 
+\usepackage{graphicx}
+\usepackage[a4paper,margin=2cm,noheadfoot]{geometry}
+\usepackage{blindtext}
+
+\usepackage{xspace,color}
+\usepackage{url}
+\usepackage{listings}
+
+\usepackage{datetime}
+\newdate{date}{23}{04}{2020}
+\date{\displaydate{date}}
+
+\lstset{commentstyle=\color{red},keywordstyle=\color{black},
+showstringspaces=false}
+\lstnewenvironment{rc}[1][]{\lstset{language=R}}{}
+\newcommand{\ri}[1]{\lstinline{#1}}  %% Short for 'R inline'
+
+\lstset{language=R}             % Set R to default language
+\begin{document}
+
+
+
+\title{Extended Williams trend test}
+\author{Elena Shevchenko}
+%\date{\today}
+
+
+\maketitle
+
+% \verb+listings+ 
+
+%\begin{verbatim}
+%texdoc listings
+%\end{verbatim}
+
+
+
+%\url{http://www.damtp.cam.ac.uk/user/sje30/teaching/r/rlistings}
+
+
+
+
+
+\section*{Introduction}
+
+
+\hspace{\parindent} Dose-response studies play an important role in many areas of applications. Clinical dose response studies are designed to investigate the effect of a certain drug at several doses. The goal is thus to ensure that with increasing dose the effect to increase (or decrease) as well. Once such an overall trend has been established, the second goal is to estimate a target dose of interest. One common target dose is the minimum effective dose, i.e., the smallest dose revealing a statistically significant and clinically relevant effect.
+
+
+Both the problem of testing on an overall dose related effect as well as the estimation of a target dose may require the application of trend tests. The trend test of Williams is one of the most common approaches to test for monotone dose-response relationships. The Williams test compares the highest dose group with the placebo group in a two-sample t -test fashion
+by replacing the usual arithmetic mean of the highest dose group with the corresponding maximum likelihood estimate (MLE) under the given order restriction. An extension of Williams' test to general unbalanced linear models is presented. The test statistic of Williams is rewritten as the maximum of a finite number of standardized linear combinations of the means.
+
+\section*{Methodology}
+
+
+Let $Y_{i,j} = \mu_i + \epsilon_{ij}$ denote the $j$ th observation at dose level $i$ ,  $j =1, . . . , n_i $,  
+
+$ i =1, . . . , k, k>2$.
+
+
+The residuals to be identically and independently normal distributed
+with common variance $\sigma^2$ , $ \epsilon_{ij}  \sim N(0, \sigma^2)$.  The null hypothesis  $H_0: \mu_1 = ... = \mu_k$ of no differential effect among the $k$ dose groups is tested against the restricted alternative $H_a :  \mu_1 \leq ... \leq \mu_k, \, \mu_1 < \mu_k$. In order to apply the Williams test in generally unbalanced situations,  the test is extended as follows. Let $N_i = \sum_{j=1}^i n_j$, $\bar{N_i} =   N_k - N_i$ for $i=0, 1, . . . , k$ and initialize $N_0 = 0$. It then follows that the MLE of the mean effect level of the highest dose group can be written as 
+$$  \hat{\mu}_k  =  \max    \lbrace   \frac{n_2 \bar{X}_2 + ...  + n_k \bar{X}_k }{ \bar{N}_1}, ... ,     \frac{n_{k-1} \bar{X}_{k-1} + n_k \bar{X}_k }{ \bar{N}_{k-2}}, \bar{X}_k \rbrace .$$
+
+Then consider the studentized variables:
+
+
+$$  T_j = \frac{\sum_{i=1}^k d_{ij} \bar{X}_i  }{S \sqrt{\sum_{i=1}^k  \frac{d_{i,j}^2}{n_i}   }} , \,  j= 1, . . . , k - 1,$$
+
+
+where $X_i$ are the group means and $S = \sum_{i = 1}^k  \sum_{j=1}^{n_i} (X_{ij}  -  \bar{X}_i)^2 / \nu$ with 
+
+
+$\nu = \sum_i n_i - k$. Weights $d_{ij} = n_i c_{ij}$, where $c_{1j} = -n_1^{-1}, c_{ij} = \bar{N}_{k-j}^{-1}$ for $k - j < i \leq k$ or $c_{ij} = 0$ otherwise, $ j= 1, . . . , k - 1$.
+
+Relying on the normality assumption of original model, it follows that $ T_1, . . . , T_{k -1}$ are jointly multivariate $t$ distributed with correlation  $$ \rho_{jl}  =  \frac{\sum_{i=1}^k n_i \, c_{ij} \, c_{il}}{\sqrt{(\sum_{i=1}^k n_i \, c_{ij}^2 ) (\sum_{i=1}^k n_i \, c_{il}^2 )}},$$  $1  \leq   j, l  \leq  k-1$.
+
+$T = \max  \lbrace  T_1,  ..., T_{k-1}  \rbrace$ is the final test statistic of the extended Williams test.
+
+
+
+
+\section*{Code}
+
+\begin{rc}
+
+Extended_Williams <- function(means_dose, SD, replications, k) {
+
+N = vector()
+for (i in 1:k) {
+  N[i] = sum(replications[1:i])
+}
+
+N_bar = vector()
+for (i in 1:(k-1)) {
+  N_bar[i+1] = N[k] - N[i]
+}
+N_bar = na.omit(N_bar)
+
+c_matrix = matrix(nrow = k, ncol = k-1)
+for (i in 1:k) {
+  for (j in 1:(k-1)) {
+    if (i == 1) {
+      c_matrix[i, j] = -(replications[1])^(-1)
+    } else if ( i > k-j && i <= k) {
+      c_matrix[i, j] = (N_bar[k-j])^(-1)
+    } else {
+      c_matrix[i, j] = 0
+    }
+  }
+}
+
+d = matrix(nrow=k, ncol=k-1)
+for (i in 1:k) {
+  for (j in 1:(k-1)) {
+    d[i,j] = replications[i] * c_matrix[i,j]
+  }
+}
+
+T = vector()
+for (i in 1:(k-1)) {
+  
+  T[i] = (t(d[,i]) %*% means_dose)/
+  (SD*(sqrt(sum((t(d[,i])^2)/replications))))
+}
+
+corr_matrix = matrix(nrow=k-1, ncol=k-1)
+for (i in 1:(k-1)) {
+  for (j in 1:(k-1)) {
+    
+ corr_matrix[i,j] = sum(replications*c_matrix[,i]*c_matrix[,j])/
+ sqrt(sum(replications*(c_matrix[,i])^2)*
+ sum(replications*(c_matrix[,j])^2))
+  
+      }
+}
+
+install.packages("mvtnorm")
+library(mvtnorm)
+return(pmvt(upper=rep(Inf, k-1), lower=T, 
+df=sum(replications) - k, corr = corr_matrix)[1])
+
+}
+
+
+
+
+
+\end{rc}
+
+
+
+
+\end{document}
