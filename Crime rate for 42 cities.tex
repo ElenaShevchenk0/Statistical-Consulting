@@ -1,0 +1,103 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+ \usepackage{titling}
+ \usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage[export]{adjustbox}
+\usepackage{float}
+
+\usepackage{graphicx}
+\graphicspath{ {\string~/Desktop/flashcard_/flashcard/usa/consulting/HW3/} }
+
+
+\title{Crime rate for 42 cities}
+\author{Elena Shevchenko}
+\date{}
+\setlength{\droptitle}{-5cm}
+
+\begin{document}
+\maketitle
+
+\subsection*{Data}
+
+
+The data set includes information for 42 cities, and here is the description of the variables: for each city,
+
+   $Y $ - total overall reported crime rate per 1 million residents,
+   
+$X_1 $ - reported violent crime rate per 100,000 residents,
+
+$X_2$ - annual police funding in dollars per resident,
+
+$X_3$ - percent of people 25+ year-olds with 4 years of high school,
+
+$X_4$ - percent of 16 to 19 year-olds not in high school and not high school graduates,
+
+$X_5$ - percent of 18 to 24 year-olds in college,
+
+$X_6$ - percent of people 25+ year-olds with at least 4 years of college.
+
+\subsection*{Analysis}
+
+
+Scatterplot matrix for all variables is presented below along with correlation matrix. $Y$ variable has high correlation with $X_1$ and not high but moderate correlation with $X_2$. Some variables have some sort of correlation between each other, meaning that we have to check multicollinearity.
+
+\begin{figure}[H]
+\includegraphics[scale=0.6,center]{{scatter_plot.png}}
+\caption{Scatter plot}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[scale=0.7,center]{{corr_matrix}}
+\caption{Correlation matrix}
+\end{figure}
+
+
+Even though Residuals vs Fitted values plot has a red curve instead of straight line, there is no clear pattern of points. It is also clear that case 38 may be influential.  Normal Q-Q plot shows that all points are close to the line, except cases 12, 36 and 38, meaning that the data is approximately normally distributed. According to the Scale-location plot, the data is homoscedastic since points spread out randomly and the pattern is not clear, even though the red curve is not the straight line. The Residuals vs Leverage shows that observations 12, 36 and 38 are close to Cook’s bounds. The graph for Cook’s distance shown below has several points that are greater than $\dfrac{4}{n-p-1}=0.11$ , meaning that they can be potential influential cases. Using diagonal elements of the hat matrix, which should be less than $\dfrac{2p}{n}=0.29$, it can be concluded that cases 5, 12, 18, 37, 39, 41 are potentially influential. As a result of excluding cases 12 and 38, the model becomes more significant. Hence there will be two models with all cases included and these two influential cases excluded.
+
+
+
+\begin{figure}[H]
+\includegraphics[scale=0.4,center]{{cooks.png}}
+\caption{Cook's distance}
+\end{figure}
+
+
+\begin{figure}[H]
+\includegraphics[scale=0.7,center]{{diagnostic_plots.png}}
+\caption{Diagnostic plots}
+\end{figure}
+
+
+Results of the linear regression without case 12 and case 38 are presented below. The model has higher adjusted coefficient of determination, equal to 0.77. Additionally, $X_1$ and $X_2$ are highly significant along with a constant. Thus, reported violent crime rate and annual police funding have significant impact on the total overall reported crime rate. The results of multicollinearity checking are presented below. There is no multicollinearity since all values of VIF are low.
+
+
+\begin{figure}[H]
+\includegraphics[center]{{regression}}
+\caption{Regression summary}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[center]{{vif}}
+\caption{VIF}
+\end{figure}
+
+Results of stepwise regression using backward direction show that the best model is $Y = X_1 + X_2+X_5 + X_6$. Stepwise regression using mixed approach gives the same results. Thus, reported violent crime rate, annual police funding, percent of 18 to 24 year-olds in college and percent of people 25+ year-olds with at least 4 years of college have significant impact on the total overall reported crime rate. Increase in reported violent crime rate per 100,000 residents by 1 unit leads to increase in total reported crime rate by 0.3106. Increase in annual police funding by 1 unit leads to increase in total reported crime rate by 5.1199. Increase in percent of 18 to 24 year-olds in college  by 1 unit leads to increase in total reported crime rate by 2.9367.  Increase in percent of people 25+ year-olds with at least 4 years of college by 1 percent leads to decrease in total reported crime rate by 12.0323.
+
+\begin{figure}[H]
+\includegraphics[center]{{stepwise}}
+\caption{Stepwise regression}
+\end{figure}
+
+
+\subsection*{Conclusion}
+
+Reported violent crime is part of total overall crime, therefore, it is clear that it affects the response. Police funding can be related to the total overall reported crime through additional resources that police may use to be more accessible to people. Young people from college may impact overall crime rate as students contact more with other people and as a result there is higher probability that they face crime. People with at least 4 years of college may be considered as more intellectual and educated people who know the law and have higher quality of life. As a result, the more people with  at least 4 years of college, the less crime is reported.
+
+\end{document}
+
+
+
