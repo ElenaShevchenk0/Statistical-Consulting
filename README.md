@@ -13,3 +13,5 @@ Function for testing hypothesis about increasing (decreasing) population means f
 2. Crime rate for 42 cities in US. 
 Multiple regression with overall crime rate as a response variable. Stepwise selection using AIC criterion.
 
+3. Flu shots
+Logistic regression with binary response. Model selection. Prediction using threshold based on ROC.
