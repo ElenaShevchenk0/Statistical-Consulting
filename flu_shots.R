@@ -36,11 +36,11 @@ mean(logfit_pred==test_data$Y)
 
 # compare full model with nested model
 
-glm_without_gender <- glm(Y ~ X1 + X2, data = HW6_1, family = binomial)
-blr_test_lr(glm_flu, glm_without_gender) #LRT  p-value = 0.9037, hence remove gender
+glm_without_gender <- glm(Y ~ X1 + X2, data = train_data, family = binomial)
+blr_test_lr(logistic_fit, glm_without_gender) #LRT  p-value = 0.9037, hence remove gender
 
 library(lmtest)
-waldtest(glm_flu, glm_without_gender) # Wald p-value = 0.4546, hence remove gender
+waldtest(logistic_fit, glm_without_gender) # Wald p-value = 0.4546, hence remove gender
 
 # model selection
 
