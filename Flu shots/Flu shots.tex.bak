@@ -1,0 +1,83 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+ \usepackage{titling}
+ \usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage[export]{adjustbox}
+\usepackage{float}
+
+\usepackage{graphicx}
+\graphicspath{ {\string~/Desktop/flashcard_/flashcard/usa/consulting/HW6/} }
+
+
+\title{Flu shots}
+\author{Elena Shevchenko}
+\date{}
+\setlength{\droptitle}{-5cm}
+
+\begin{document}
+\maketitle
+
+\subsection*{Data}
+
+
+A local health clinic sent 
+fliers to encourage everyone, but especially older persons at high
+risk of complications, to get a 
+flu shot in time for protection against an expected 
+flu epidemic.
+In a pilot follow-up study, 100 clients were randomly selected and asked whether they actually
+received a 
+flu shot. A client who received a 
+flu shot was coded Y = 1, and a client who did
+not receive a 
+flu shot was coded Y = 0. In addition, data were collected on their age (X1)
+and their health awareness. The latter data were combined into a health awareness index
+(X2), for which higher values indicate greater awareness. Also included in the data was client
+gender, where males were coded X3 = 1 and females were coded X3 = 0.
+
+\subsection*{Analysis}
+
+First data was split into training set and test set. Test set contains 20 observations and the rest 79 points were assigned to the training data. Then logistic regression was fit using training set. Predictors X1 and X2 are significant. Nagelkerke coefficient of determination is 0.41. 
+
+\begin{figure}[H]
+\includegraphics[scale=0.8,center]{{log_fit.png}}
+\caption{Logistic regression fit}
+\end{figure}
+
+ROC curve was plot after applying model to the test data. AUC is 0.89.  Threshold for predicted probabilities is  0.78. Confusion matrix is presented below. The test error rate is 0.9.
+
+\begin{figure}[H]
+\includegraphics[scale=0.6,center]{{Rplot1.png}}
+\caption{ROC curve}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[center]{{CM.png}}
+\caption{Confusion matrix}
+\end{figure}
+
+Now LRT and Wald test are conducted to test whether X3 can be removed from the model.
+
+\begin{figure}[H]
+\includegraphics[center]{{LRT.png}}
+\caption{LRT for X3}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[center]{{Wald.png}}
+\caption{Wald test for X3}
+\end{figure}
+
+
+\subsection*{Conclusion}
+
+Reported violent crime is part of total overall crime, therefore, it is clear that it affects the response. Police funding can be related to the total overall reported crime through additional resources that police may use to be more accessible to people. Young people from college may impact overall crime rate as students contact more with other people and as a result there is higher probability that they face crime. People with at least 4 years of college may be considered as more intellectual and educated people who know the law and have higher quality of life. As a result, the more people with  at least 4 years of college, the less crime is reported.
+
+\end{document}
+
+
+
