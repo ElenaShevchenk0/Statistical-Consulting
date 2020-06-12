@@ -2,7 +2,7 @@ Credit_card = as.data.frame(Credit_card_data)
 Credit_card$card <- as.factor(Credit_card$card)
 Credit_card$owner <- as.factor(Credit_card$owner)
 Credit_card$selfemp <- as.factor(Credit_card$selfemp)
-summary(Credit_card[,-13])
+summary(Credit_card)
 
 num_ind <- vector(length=(dim(Credit_card)[2]))
 for (i in 1:dim(Credit_card)[2]) {
@@ -21,7 +21,7 @@ table(Credit_card$card, Credit_card$expenditure_dummy)
 # logistic regression
 
 log_fit = glm(card ~ reports  + age  + income + owner + selfemp + dependents +
-                months + majorcards + active, data = Credit_card, family = binomial)
+                months + majorcards + active , data = Credit_card, family = binomial)
 summary(log_fit)
 
 library(MASS)
@@ -29,7 +29,6 @@ stepAIC(log_fit)
 
 library(car)
 vif(log_fit)
-
 probs = predict(log_fit, type="response")
 log_fit_pred = rep("no", length(probs))
 log_fit_pred[probs > 0.6] = "yes"
@@ -40,21 +39,6 @@ confusionMatrix(as.factor(log_fit_pred), Credit_card$card)
 
 plot(1:length(probs), probs)
 
-# final logistic model without age and months
-
-log_fit_final = glm(card ~ reports   + income + owner + selfemp + dependents +
-                majorcards + active, data = Credit_card, family = binomial)
-summary(log_fit_final)
-
-probs_final = predict(log_fit_final, type="response")
-log_fit_final_pred = rep("no", length(probs_final))
-log_fit_final_pred[probs_final > 0.6] = "yes"
-table(log_fit_final_pred, Credit_card$card)
-mean(log_fit_final_pred == Credit_card$card)
-library(caret)
-confusionMatrix(as.factor(log_fit_final_pred), Credit_card$card, positive="yes")
-
-plot(1:length(probs_final), probs_final)
 
 # lasso
 
@@ -76,6 +60,8 @@ lasso_pred = predict(lasso_mod, s=bestlam, newx=x[test ,], type="response")
 out = glmnet(x, y, alpha = 1, lambda =grid, family="binomial")
 lasso_coef = predict(out ,type ="coefficients",s=bestlam )
 lasso_coef
+
+
 
 # tree for the whole data
 

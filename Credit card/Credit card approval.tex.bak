@@ -1,0 +1,211 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+ \usepackage{titling}
+ \usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage[export]{adjustbox}
+\usepackage{float}
+
+\usepackage{graphicx}
+\graphicspath{ {\string~/Desktop/flashcard_/flashcard/usa/consulting/credit_card/} }
+
+
+\title{Decision making for credit card approval}
+\author{Elena Shevchenko}
+\date{}
+\setlength{\droptitle}{-5cm}
+
+\begin{document}
+\maketitle
+
+\subsection*{Data}
+
+
+The data was taken from kaggle datasets https://www.kaggle.com/dansbecker/aer-credit-card-data. The data has 1319 rows and  includes the following variables:
+
+card: Dummy variable, 1 if application for credit card accepted, 0 if not
+
+reports: Number of major derogatory reports
+
+age: Age n years plus twelfths of a year
+
+income: Yearly income (divided by 10,000)
+
+share: Ratio of monthly credit card expenditure to yearly income
+
+expenditure: Average monthly credit card expenditure
+
+owner: 1 if owns their home, 0 if rent
+
+selfempl: 1 if self employed, 0 if not
+
+dependents: 1 + number of dependents
+
+months: Months living at current address
+
+majorcards: Number of major credit cards held
+
+active: Number of active credit accounts
+
+
+\subsection*{EDA}
+
+Summary of the data shows that slightly over 20 \% of all applications did not receive an approval. $reports$ has more than 3rd of its values as zero.
+
+
+\begin{figure}[H]
+\includegraphics[scale=0.6,center]{{summary.png}}
+\caption{Summary}
+\end{figure}
+
+Correlation matrix for numerical features is presented below. Features$expenditure$ and $share$ have high positive correlation coefficient, meaning that there is strong relationship between these variables.
+
+\begin{figure}[H]
+\includegraphics[scale=0.6,center]{{corr.png}}
+\caption{Correlation matrix}
+\end{figure}
+
+
+According to the scatter plot, there are only few applications that did not receive approval and these are with zero $share$. It can potentially lead to the problem in analysis since denials are determined by zero shares only.  
+
+\begin{figure}[H]
+\includegraphics[scale=0.6,center]{{share_plot.png}}
+\caption{Scatter plot between $share$ and $card$}
+\end{figure}
+
+Similar scatter plot is shown below for $expenditure$.
+
+\begin{figure}[H]
+\includegraphics[scale=0.6,center]{{expend_plot.png}}
+\caption{Scatter plot between $expenditure$ and $card$}
+\end{figure}
+
+To investigate this situation further  it is necessary to create new dummy variable, taking 0 if expenditure is 0 and 1 otherwise. Confusion matrix below shows that all applications with positive expenditure received an approval. 
+
+\begin{figure}[H]
+\includegraphics[scale=0.9,center]{{table_card_exp.png}}
+\caption{Confusion matrix for dummy $expenditure$ and $card$}
+\end{figure}
+
+
+\subsection*{Logistic regression}
+
+EDA shows that everyone who has positive expenditure receives an approval. Thus, approval can be determined by only $expenditure$. Hence, it is only sufficient to make analysis for those who do not have expenditure as these applications have both approvals and denials. Then there are 2 steps in analysis using logistic regression: 
+
+1. Logistic regression for all observations using all features except for $expenditure$ and $share$.
+
+2. Logistic regression using only observations whose applications were denied.
+
+
+\subsubsection*{1. Logistic regression for all observations}
+
+Features $share$ and $expenditure$ are excluded from logistic model as for these variables denials are determined by zero values only. Almost all coefficients are significant. 
+
+
+\begin{figure}[H]
+\includegraphics[scale=0.9,center]{{logistic_full.png}}
+\caption{Logistic regression summary}
+\end{figure}
+
+Results of step-wise selection show that the final model does not include $age$ and $months$, which is a consistent result according to the significance of features in the original model.
+
+\begin{figure}[H]
+\includegraphics[scale=0.7,center]{{model_selection.png}}
+\caption{Step-wise selection}
+\end{figure}
+
+Cross-validation is  applied to Lasso, where 2 coefficients are set to zero. The results are the same as for step-wise selection. 
+
+\begin{figure}[H]
+\includegraphics[scale=0.7,center]{{Lasso.png}}
+\caption{Lasso coefficients}
+\end{figure}
+
+Finally, predictions are made using the final model. The accuracy of prediction is 86 \%. According to ROC curve, optimal threshold is 0.6.
+
+
+\begin{figure}[H]
+\includegraphics[scale=0.9,center]{{conf_matrix.png}}
+\caption{Confusion matrix}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[scale=0.6,center]{{ROC.png}}
+\caption{ROC curve}
+\end{figure}
+
+
+\subsubsection*{2. Logistic regression for 317 observations}
+
+First make a scatter plot for $reports$ and $card$.  There is similar problem with $reports$ as with $expenditure$ and $share$. Zero reports almost determine chance of approval for applications without expenditures. Therefore, it is excluded from further analysis. 
+
+
+\begin{figure}[H]
+\includegraphics[scale=0.6,center]{{reports.png}}
+\caption{Scatter plot for $reports$ and $card$}
+\end{figure}
+
+Only one coefficient for $dependents$ is significant. Step-wise model selection leaves only $dependents$ variable. However, Lasso method with cross-validation leaves additional features as can be seen below. Hence, the next step is to use decision tree and random forests.
+
+
+\begin{figure}[H]
+\includegraphics[scale=0.9,center]{{logistic_small.png}}
+\caption{Logistic regression summary}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[scale=0.9,center]{{lasso_small.png}}
+\caption{Lasso results for reduced model}
+\end{figure}
+
+
+
+\subsection*{Tree for the whole data set}
+
+First, the tree is constructed for all variables including $expenditure$ and $share$. The tree is represented below. There are only 3 terminal nodes. According to the tree, card approval is  fully determined by 2 variables $expenditure$ and  $reports$. The structure of the tree support results from previous analysis. Nevertheless, the main variable that determines approval is $expenditure$.
+
+
+\begin{figure}[H]
+\includegraphics[scale=0.6,center]{{tree_full.png}}
+\caption{Tree for the full data set}
+\end{figure}
+
+Then the data was divided into training and test sets with 660 cases in training set. Tree was constructed using training set and then predictions were made using test set. The results of prediction are show below, where prediction is accurate in 98\%. Pruning does not lead to an improvement even when cross-validation is used. 
+
+\begin{figure}[H]
+\includegraphics[scale=0.9,center]{{train_tree.png}}
+\caption{Confusion matrix using training and test sets}
+\end{figure}
+
+
+\subsection*{Tree for the reduced data set}
+
+The tree for 317 observations is shown below and is consistent with the results of lasso. The accuracy of the prediction is 93\%. Splitting reduced data set into training and set sets does not lead to improvement. Pruning the tree also does not lead to an improvement.
+
+
+\begin{figure}[H]
+\includegraphics[scale=0.6,center]{{tree_reduced.png}}
+\caption{Tree for the reducedl data set}
+\end{figure}
+
+
+\subsection*{Bagging and random forests}
+
+
+For the original data set bagging with constructing 500 trees using training and test sets leads to 98\% accuracy for predictions. Random forests has similar results and does not lead to an improvement. 
+
+Similar results hold for reduced data set using 317 observations. Prediction is accurate in 92\%.
+
+
+\subsection*{Conclusion}
+
+Credit card approval is one of the most important decision-making tasks for banks. According to analysis, the main features that determine approval are $expenditure$ and $share$. Applications that show positive expenditures are likely to be  Among those who
+
+
+\end{document}
+
+
+
