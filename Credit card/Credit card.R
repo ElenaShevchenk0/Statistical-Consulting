@@ -2,7 +2,7 @@ Credit_card = as.data.frame(Credit_card_data)
 Credit_card$card <- as.factor(Credit_card$card)
 Credit_card$owner <- as.factor(Credit_card$owner)
 Credit_card$selfemp <- as.factor(Credit_card$selfemp)
-summary(Credit_card)
+summary(Credit_card[,-13])
 
 num_ind <- vector(length=(dim(Credit_card)[2]))
 for (i in 1:dim(Credit_card)[2]) {
@@ -21,7 +21,7 @@ table(Credit_card$card, Credit_card$expenditure_dummy)
 # logistic regression
 
 log_fit = glm(card ~ reports  + age  + income + owner + selfemp + dependents +
-                months + majorcards + active , data = Credit_card, family = binomial)
+                months + majorcards + active, data = Credit_card, family = binomial)
 summary(log_fit)
 
 library(MASS)
@@ -29,6 +29,7 @@ stepAIC(log_fit)
 
 library(car)
 vif(log_fit)
+
 probs = predict(log_fit, type="response")
 log_fit_pred = rep("no", length(probs))
 log_fit_pred[probs > 0.6] = "yes"
@@ -38,6 +39,30 @@ library(caret)
 confusionMatrix(as.factor(log_fit_pred), Credit_card$card)
 
 plot(1:length(probs), probs)
+
+# final logistic model without age and months
+
+log_fit_final = glm(card ~ reports   + income + owner + selfemp + dependents +
+                majorcards + active, data = Credit_card, family = binomial)
+summary(log_fit_final)
+
+probs_final = predict(log_fit_final, type="response")
+log_fit_final_pred = rep("no", length(probs_final))
+log_fit_final_pred[probs_final > 0.6] = "yes"
+table(log_fit_final_pred, Credit_card$card)
+mean(log_fit_final_pred == Credit_card$card)
+
+library(caret)
+confusionMatrix(as.factor(log_fit_final_pred), Credit_card$card, positive="yes")
+
+plot(1:length(probs_final), probs_final)
+
+
+library(pROC)
+library(caTools)
+
+auc_roc = colAUC(probs_final, Credit_card$card, plotROC = TRUE) # auc = 0.8424976
+auc = roc(Credit_card$card, probs_final, plot = TRUE, col = "blue") # threshold = 0.6
 
 
 # lasso
@@ -61,8 +86,6 @@ out = glmnet(x, y, alpha = 1, lambda =grid, family="binomial")
 lasso_coef = predict(out ,type ="coefficients",s=bestlam )
 lasso_coef
 
-
-
 # tree for the whole data
 
 tree_credit = tree(card ~.-expenditure_dummy, data=Credit_card)
@@ -74,15 +97,15 @@ tree_train = sample(1:nrow(Credit_card), 660)
 Credit_test = Credit_card[-tree_train,]
 card_test = Credit_card$card[-tree_train]
 tree_credit = tree(card ~.-expenditure_dummy, data=Credit_card, subset=tree_train)
+plot(tree_credit)
+text(tree_credit, pretty=0)
 
 tree_pred = predict(tree_credit, Credit_test, type = "class")
 table(tree_pred, card_test)
 mean(tree_pred == card_test) # 0.9802731
-plot(tree_credit)
-text(tree_credit, pretty=0)
 
 credit_tree_cv = cv.tree(tree_credit, FUN=prune.misclass)
-credit_tree_cv # min cv error rate is 10
+credit_tree_cv # min cv error rate is 13
 plot(credit_tree_cv$size, credit_tree_cv$dev, type="b")
 plot(credit_tree_cv$k, credit_tree_cv$dev, type="b")
 
@@ -104,14 +127,14 @@ bag_credit # OOB estimate of  error rate: 2.27%
 
 bag_pred = predict(bag_credit, Credit_test)
 table(unlist(bag_pred), card_test)
-mean(unlist(bag_pred) == card_test) # 0.9726859
+mean(unlist(bag_pred) == card_test) # 0.983308
 
 rf_credit = randomForest(card ~. -expenditure_dummy, data=Credit_card, subset=tree_train, importance=TRUE)
-rf_credit # OOB estimate of  error rate: 1.67%
+rf_credit # OOB estimate of  error rate: 2.12%
 
 rf_pred = predict(rf_credit, Credit_test)
 table(unlist(rf_pred), card_test)
-mean(unlist(rf_pred) == card_test) #  0.9787557
+mean(unlist(rf_pred) == card_test) # 0.983308
 
 importance(rf_credit)
 varImpPlot(rf_credit)
@@ -122,7 +145,7 @@ Credit_317 = Credit_card[which(Credit_card$expenditure == 0),-c(5,6,13)]
 View(Credit_317)
 summary(Credit_317)
 
-log_fit_317 = glm(card ~ reports + age + income  + owner + selfemp + dependents +
+log_fit_317 = glm(card ~  age + income  + owner + selfemp + dependents +
                     months + majorcards + active, data = Credit_317, family = binomial)
 plot(Credit_317$reports,Credit_317$card)
 
@@ -178,33 +201,33 @@ Credit_test_317 = Credit_317[-tree_train_317,]
 card_test_317 = Credit_317$card[-tree_train_317]
 tree_317 = tree(card ~., data=Credit_317, subset=tree_train_317)
 
-tree_pred = predict(tree_credit, Credit_test, type = "class")
-table(tree_pred, card_test)
-mean(tree_pred == card_test) # 0.9802731
-plot(tree_credit)
-text(tree_credit, pretty=0)
+tree_pred_317 = predict(tree_317, Credit_test_317, type = "class")
+table(tree_pred_317, card_test_317)
+mean(tree_pred_317 == card_test_317) # 0.9275362
+plot(tree_317)
+text(tree_317, pretty=0)
 
-credit_tree_cv = cv.tree(tree_credit, FUN=prune.misclass)
-credit_tree_cv # min cv error rate is 10
+credit_tree_cv = cv.tree(tree_317, FUN=prune.misclass)
+credit_tree_cv # min cv error rate is 6
 plot(credit_tree_cv$size, credit_tree_cv$dev, type="b")
 plot(credit_tree_cv$k, credit_tree_cv$dev, type="b")
 
-prune_credit = prune.misclass(tree_credit, best=2)
-plot(prune_credit)
-text(prune_credit, pretty=0)
+prune_credit_317 = prune.misclass(tree_317, best=6)
+plot(prune_credit_317)
+text(prune_credit_317, pretty=0)
 
-prune_pred = predict(prune_credit, Credit_test, type='class')
-table(prune_pred, card_test)
-mean(prune_pred == card_test) # 0.9802731
+prune_pred = predict(prune_credit_317, Credit_test_317, type='class')
+table(prune_pred, card_test_317)
+mean(prune_pred == card_test_317) # 0.9802731
 
 # rf for 296+21=317 cases without expenditure, share
 
 rf_credit_317 = randomForest(card ~., data=Credit_317, subset=train_317, importance=TRUE)
-rf_credit_317 # OOB estimate of  error rate: 7.59%
+rf_credit_317 # OOB estimate of  error rate: 5.7%
 
 rf_pred_317 = predict(rf_credit_317, Credit_317[-train_317,])
 table(unlist(rf_pred_317), y_test_317)
-mean(unlist(rf_pred_317) == y_test_317) #  0.918239
+mean(unlist(rf_pred_317) == y_test_317) #  0.9245283
 
 importance(rf_credit_317)
 varImpPlot(rf_credit_317)
