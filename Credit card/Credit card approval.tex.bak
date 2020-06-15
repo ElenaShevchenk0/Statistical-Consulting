@@ -202,7 +202,7 @@ Similar results hold for reduced data set using 317 observations. Prediction is 
 
 \subsection*{Conclusion}
 
-Credit card approval is one of the most important decision-making tasks for banks. According to analysis, the main features that determine approval are $expenditure$ and $share$. Applications that show positive expenditures are likely to be  Among those who
+Credit card approval is one of the most important decision-making tasks for banks. According to analysis, the main features that determine approval are $expenditure$ and $share$. Applications that show positive expenditures are certainly to be approved. Among those who do not have expenditures  $reports$ determine the results of decision. Extra variables, such as $active$, $age$, $months$, $ dependents$ and $majorcards$,  are considered in decision-making based on information of the reports. 
 
 
 \end{document}
